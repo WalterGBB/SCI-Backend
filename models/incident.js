@@ -15,19 +15,32 @@ const mongoose = require('mongoose') // Importamos mongoose para definir el esqu
 
 // Definición del esquema del Incident
 const IncidentSchema = new mongoose.Schema({
-    fechaRegistro: { type: Date, required: true }, // Fecha de registro de la incidencia 
-    fechaResolucion: { type: Date, require: true }, // Fecha de resolución de la incidencia 
-    curso: { type: String, required: true },       // Curso donde se registró la incidencia 
-    docente: { type: String, required: true },     // Docente del curso en el que se registró la incidencia 
-    procedencia: { type: String, required: true }, // Procedencia (Aulas, Laboratorios, etc.)
-    prioridad: { type: String, required: true },   // Prioridad (Alta, Media, Baja)
-    activosReportados: { type: Array, required: true }, // (PCs, server, etc.)
-    observaciones: { type: String, required: true }, // Descripción (Detalles de la incidencia)
-    estado: { type: Boolean, default: false },     // Estado (false=Pendiente, true=Resuelta)
+    fechaRegistro: { type: Date, required: [true, 'Es obligatorio asignar una fecha de registro'] }, // Fecha de registro de la incidencia 
+    fechaResolucion: { type: Date }, // Fecha de resolución de la incidencia 
+    curso: { type: String, required: [true, 'Es obligatorio asignar un curso'] },       // Curso donde se registró la incidencia 
+    docente: { type: String, required: [true, 'Es obligatorio asignar un docente'] },     // Docente del curso en el que se registró la incidencia 
+    procedencia: { type: String, required: [true, 'Es obligatorio asignar una lugar de procedencia'] }, // Procedencia (Aulas, Laboratorios, etc.)
+    prioridad: { type: String, required: [true, 'Es obligatorio asignar nivel de prioridad a la incidencia'] },   // Prioridad (Alta, Media, Baja)
+    categoria: { type: String, required: [true, 'La categoría es obligatoria'] }, // Categoría (Hardware, Software, etc.)
+    subcategoria: { type: String, required: [true, 'La subcategoría es obligatoria'] }, // Subcategoría (Falla de PC, Sistema Operativo, etc.)
+    activosReportados: { type: Array, required: [true, 'Es obligatorio asignar los activos reportados'] }, // (PCs, server, etc.)
+    observaciones: { type: String, required: [true, 'Es obligatorio asignar observaciones'] }, // Descripción (Detalles de la incidencia)
+    responsable: { type: String },   // Responsable de resolver la incidencia
+    imagen: { // URL o ruta de la imagen asociada a la incidencia
+        url: String,
+        public_id: String,
+    },
+    estado: { // Estado de la incidencia (Pendiente, Resuelta, Cerrada)
+        type: String,
+        enum: ['Pendiente', 'Resuelta', 'Cerrada'],
+        default: 'Pendiente',
+        required: true
+    },
     user: {                                        // Referencia al usuario que registró la incidencia
         type: mongoose.Schema.Types.ObjectId,      // ObjectId (referencia a otra colección)
         ref: 'User'                                // Referencia al modelo 'User'
-    }
+    },
+    solucion: { type: String } // Descripción de la solución aplicada para resolver la incidencia
 })
 
 // Personalizamos la transformación de los documentos al convertirlos a JSON

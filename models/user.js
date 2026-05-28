@@ -17,7 +17,9 @@ const userSchema = new mongoose.Schema({
     },
     name: String,
     rol: String,
-    googleId: String,
+    googleId: { type: String, unique: true },
+    picture: { type: String, unique: true },
+    email: { type: String, unique: true },
     incidents: [
         {
             type: mongoose.Schema.Types.ObjectId,

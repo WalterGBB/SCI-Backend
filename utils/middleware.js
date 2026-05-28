@@ -51,23 +51,40 @@ const userExtractor = async (request, response, next) => {
 }
 
 const errorHandler = (error, request, response, next) => {
-    logger.error(error.message)
+    logger.error(error.message);
 
+    // 1. Errores de Formato de ID (Mongoose)
     if (error.name === 'CastError') {
-        return response.status(400).send({ error: 'malformatted id' })
-    } else if (error.name === 'ValidationError') {
-        return response.status(400).json({ error: error.message })
-    } else if (error.name === 'MongoServerError' && error.message.includes('E11000 duplicate key error')) {
-        return response.status(400).json({ error: 'expected `username` to be unique' })
-    } else if (error.name === 'JsonWebTokenError') {
-        return response.status(401).json({ error: 'token invalid' })
-    } else if (error.name === 'TokenExpiredError') {
-        return response.status(401).json({
-            error: 'token expired'
-        })
+        return response.status(400).send({ error: 'El ID proporcionado no tiene un formato válido.' });
     }
 
-    next(error)
+    // 2. Errores de Validación (Campos obligatorios, longitud, etc.)
+    if (error.name === 'ValidationError') {
+        // Mongoose devuelve un objeto con cada campo fallido. 
+        // Aquí extraemos solo los mensajes específicos.
+        const mensajes = Object.values(error.errors).map(e => e.message);
+        return response.status(400).json({
+            error: 'Error de validación',
+            detalles: mensajes // Esto devolverá algo como ["El nombre es obligatorio"]
+        });
+    }
+
+    // 3. Duplicados (MongoDB)
+    if (error.name === 'MongoServerError' && error.code === 11000) {
+        // Es más seguro usar error.code === 11000 que buscar el string
+        return response.status(400).json({ error: 'El nombre de usuario ya está en uso. Debe ser único.' });
+    }
+
+    // 4. Errores de Autenticación (JWT)
+    if (error.name === 'JsonWebTokenError') {
+        return response.status(401).json({ error: 'Token inválido o malformado.' });
+    }
+
+    if (error.name === 'TokenExpiredError') {
+        return response.status(401).json({ error: 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.' });
+    }
+
+    next(error);
 }
 
 module.exports = {
