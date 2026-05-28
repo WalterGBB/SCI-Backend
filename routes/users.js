@@ -6,7 +6,7 @@ const authorizeRole = require('../utils/authorizeRole')
 
 usersRouter.get(
     '/',
-    tokenExtractor, userExtractor, authorizeRole('Administrador'),
+    tokenExtractor, userExtractor,
     async (request, response) => {
         const users = await User.find({})
         response.json(users)
@@ -68,6 +68,7 @@ usersRouter.delete(
 usersRouter.put('/:id',
     tokenExtractor,
     userExtractor,
+    authorizeRole('Administrador'),
     async (request, response, next) => {
         try {
             const { name, rol, adminPassword } = request.body
