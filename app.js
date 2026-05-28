@@ -3,6 +3,11 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 
+const allowedOrigins = [
+    'http://localhost:5173',
+    config.FRONTEND_URL
+].filter(Boolean)
+
 const usersRouter = require('./routes/users')
 const loginRouter = require('./routes/login')
 const incidentsRouter = require('./routes/incidents')
@@ -27,7 +32,20 @@ mongoose.connect(config.MONGODB_URI)
         logger.error('error connecting to MongoDB:', error.message)
     })
 
-app.use(cors())
+app.use(cors({
+    origin: function (origin, callback) {
+
+        // Permitir Postman, mobile apps, etc.
+        if (!origin) return callback(null, true)
+
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true)
+        } else {
+            callback(new Error('No permitido por CORS'))
+        }
+    }
+}))
+
 app.use(express.static('dist'))
 app.use(express.json())
 app.use(middleware.requestLogger)
@@ -39,6 +57,7 @@ app.use('/api/login/google', googleLoginRouter)
 app.use('/api/ambientes', ambientesRouter)
 app.use('/api/cursos', cursosRouter)
 app.use('/api/categorias', categoriasRouter)
+
 if (process.env.NODE_ENV === 'test') {
     const testingRouter = require('./routes/testing')
     app.use('/api/testing', testingRouter)
