@@ -128,14 +128,9 @@ incidentsRouter.post(
             const savedIncident = await incident.save()
 
             // Enviar correo notificando nueva incidencia
-            try {
-                await sendIncidentEmail(savedIncident)
-            } catch (emailError) {
-                console.error(
-                    'Error enviando correo:',
-                    emailError
-                )
-            }
+            sendIncidentEmail(savedIncident).catch(emailError => {
+                console.error('Error enviando correo en segundo plano:', emailError)
+            })
 
             user.incidents = user.incidents.concat(savedIncident._id)
             await user.save()
