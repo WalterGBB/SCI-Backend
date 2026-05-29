@@ -65,47 +65,8 @@ incidentsRouter.post(
                 }
                 : null
 
-            // 🔹 Obtener fecha enviada (solo YYYY-MM-DD)
-            const fechaInput = request.body.fechaRegistro
-
-            // 🔹 Obtener fecha actual en Perú
-            const ahoraPeru = new Date(
-                new Date().toLocaleString("en-US", { timeZone: "America/Lima" })
-            )
-
-            // 🔹 Construir fecha final
-            let fechaFinal
-
-            if (!fechaInput) {
-                // Si no enviaron fecha → usar ahora mismo
-                fechaFinal = ahoraPeru
-            } else {
-                const [year, month, day] = fechaInput.split("-").map(Number)
-
-                const hoyPeru = new Date(
-                    ahoraPeru.getFullYear(),
-                    ahoraPeru.getMonth(),
-                    ahoraPeru.getDate()
-                )
-
-                const fechaSeleccionada = new Date(year, month - 1, day)
-
-                const esHoy =
-                    fechaSeleccionada.getFullYear() === hoyPeru.getFullYear() &&
-                    fechaSeleccionada.getMonth() === hoyPeru.getMonth() &&
-                    fechaSeleccionada.getDate() === hoyPeru.getDate()
-
-                if (esHoy) {
-                    // 🔥 Si es hoy → hora actual peruana real
-                    fechaFinal = ahoraPeru
-                } else {
-                    // 🔥 Si es otra fecha → mediodía Perú
-                    fechaFinal = new Date(year, month - 1, day, 12, 0, 0)
-                }
-            }
-
             const incident = new Incident({
-                fechaRegistro: fechaFinal,
+                fechaRegistro: new Date(),
                 fechaResolucion: null,
                 curso,
                 docente,
@@ -129,10 +90,14 @@ incidentsRouter.post(
 
             // Enviar correo notificando nueva incidencia
             sendIncidentEmail(savedIncident).catch(emailError => {
-                console.error('Error enviando correo en segundo plano:', emailError)
+                console.error(
+                    'Error enviando correo en segundo plano:',
+                    emailError
+                )
             })
 
             user.incidents = user.incidents.concat(savedIncident._id)
+
             await user.save()
 
             const returnedIncident = await savedIncident.populate(
@@ -141,6 +106,7 @@ incidentsRouter.post(
             )
 
             response.status(201).json(returnedIncident)
+
         } catch (error) {
             next(error)
         }

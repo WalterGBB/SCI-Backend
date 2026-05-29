@@ -9,34 +9,29 @@ const getTodayLocalISO = () => {
 
 // 1. Solo para inputs de fecha (YYYY-MM-DD) o cuando solo quieres DD/MM/YYYY
 const formatFechaCorta = (fechaISO) => {
-    const dateObj = new Date(fechaISO)
-    return !isNaN(dateObj)
-        ? dateObj.toLocaleDateString("es-PE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric"
-        })
-        : "-"
+    if (!fechaISO) return "-"
+
+    return new Date(fechaISO).toLocaleDateString("es-PE", {
+        timeZone: "America/Lima",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+    })
 }
 
 // 2. Para registros de la base de datos que incluyen hora
 const formatFechaHora = (fechaISO) => {
     if (!fechaISO) return "-"
 
-    // REUTILIZAMOS la lógica de fecha corta
-    const fechaParte = formatFechaCorta(fechaISO)
-
-    // Procesamos la hora usando el objeto Date
-    const date = new Date(fechaISO)
-    let hours = date.getHours()
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const ampm = hours >= 12 ? 'PM' : 'AM'
-
-    hours = hours % 12
-    hours = hours ? hours : 12
-    const strHours = String(hours).padStart(2, '0')
-
-    return `${fechaParte} ${strHours}:${minutes} ${ampm}`
+    return new Date(fechaISO).toLocaleString("es-PE", {
+        timeZone: "America/Lima",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+    })
 }
 
 // 3. Para mostrar la fecha en formato largo (Ej: 15 de Agosto de 2024)
@@ -58,19 +53,16 @@ const formatFechaLarga = (fechaISO) => {
     return `${diaFormateado} de ${nombreMes} del ${year}`
 }
 
-// 4° Para mostrar solo la hora del registro (Ej: 14:30)
+// 4° Para mostrar solo la hora del registro 
 const formatSoloHora = (fechaISO) => {
     if (!fechaISO) return "-"
-    const date = new Date(fechaISO)
-    let hours = date.getHours()
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const ampm = hours >= 12 ? 'PM' : 'AM'
 
-    hours = hours % 12
-    hours = hours ? hours : 12
-    const strHours = String(hours).padStart(2, '0')
-
-    return `${strHours}:${minutes} ${ampm}`
+    return new Date(fechaISO).toLocaleTimeString("es-PE", {
+        timeZone: "America/Lima",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+    })
 }
 
 module.exports = {
